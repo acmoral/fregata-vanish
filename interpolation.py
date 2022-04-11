@@ -7,6 +7,7 @@ from skimage import exposure  # nivelate exposure in tiff->png
 from PIL import Image
 import rasterio
 import matplotlib.pyplot as plt
+import matplotlib
 from typing import List
 from os import listdir
 from os.path import isfile, join
@@ -26,7 +27,7 @@ def make_video(image_folder: str):
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     frame = cv2.imread(image_folder + "/" + images[0])
     height, width, layers = frame.shape
-    video = cv2.VideoWriter(video_name, fourcc, 4, (width, height))
+    video = cv2.VideoWriter(video_name, fourcc, 5, (width, height))
     for file in file_names:
         video.write(cv2.imread(image_folder + "/" + str(file)+'.png'))
     cv2.destroyAllWindows()
@@ -34,6 +35,7 @@ def make_video(image_folder: str):
 
 
 def interpolate_images(image1: np.ndarray, image2: np.ndarray, step: int) -> List[any]:
+    mycm=matplotlib.colors.LinearSegmentedColormap.from_list('',['#582f91', '#00aeef'])
     if image1.shape != image2.shape:
         raise Exception("Image must have same shape!")
     alphas = np.linspace(0, 1, step)
@@ -49,9 +51,10 @@ def interpolate_images(image1: np.ndarray, image2: np.ndarray, step: int) -> Lis
             # in_range=(np.nanmin(new_image), np.nanmax(new_image)),
             out_range="uint16",
         )
+        imgrad=mycm(equalized)
         new_image[new_image == 0] = "nan"
         images.append(new_image)
-        images_PNG.append(Image.fromarray(equalized).convert("L"))
+        images_PNG.append(Image.fromarray(imgrad))
     return images, images_PNG
 
 
